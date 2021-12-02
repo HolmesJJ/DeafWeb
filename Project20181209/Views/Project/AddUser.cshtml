@@ -1,0 +1,131 @@
+﻿@model Project20181209.Models.AddUserModel
+
+@{
+    ViewData["Title"] = "Add User";
+}
+
+<div class="row">
+    <div class="col-md-4"></div>
+    <div class="col-md-4">
+        <div class="well well-sm text-center"><h4>Add New User</h4></div>
+        <form asp-action="UploadUser" method="post" id="addUserForm" enctype="multipart/form-data">
+            <div class="input-group">
+                <span class="input-group-addon"><span class="glyphicon glyphicon-user"></span></span>
+                <input type="text" class="username form-control" value="" placeholder="Username" required />
+                <input type="text" class="username-encryption" style="display: none" value="" required asp-for="Username" />
+            </div>
+            <div class="input-group">
+                <span class="input-group-addon"><span class="glyphicon glyphicon-hdd"></span></span>
+                <input type="email" class="email form-control" value="" placeholder="Email" required />
+                <input type="text" class="email-encryption" style="display: none" value="" required asp-for="Email" />
+            </div>
+            <div class="input-group">
+                <span class="input-group-addon"><span class="glyphicon glyphicon-lock"></span></span>
+                <input type="password" class="password form-control" value="" placeholder="Password" required />
+                <input type="text" class="password-encryption" style="display: none" value="" required asp-for="Password" />
+            </div>
+            <div class="input-group">
+                <span class="input-group-addon"><span class="glyphicon glyphicon-lock"></span></span>
+                <input type="password" class="cpassword form-control" value="" placeholder="Confirm Password" required />
+            </div>
+            <div class="input-group">
+                <span class="input-group-addon"><span class="glyphicon glyphicon-picture"></span></span>
+                <input type="file" class="profile form-control" required asp-for="Profile" />
+            </div>
+            <div class="input-group">
+                <span class="input-group-addon"><span class="glyphicon glyphicon-question-sign"></span></span>
+                <label class="radio-inline" style="margin-left: 10px; margin-top: 5px">
+                    <input type="radio" name="sex" class="sex" value="M" checked> Male
+                </label>
+                <label class="radio-inline" style="margin-top: 5px">
+                    <input type="radio" name="sex" class="sex" value="F"> Female
+                </label>
+                <input type="text" class="gender-encryption" style="display: none" value="" required asp-for="Gender" />
+            </div>
+            <div class="input-group">
+                <span class="input-group-addon"><span class="glyphicon glyphicon-font"></span></span>
+                <input type="number" class="age form-control" value="" placeholder="Age" required min="0" max="15" />
+                <input type="text" class="age-encryption" style="display: none" value="" required min="0" max="15" asp-for="Age" />
+            </div>
+            <div class="input-group">
+                <span class="input-group-addon"><span class="glyphicon glyphicon-volume-up"></span></span>
+                <input type="number" class="hearing form-control" value="" placeholder="Hearing" required min="0" max="100" />
+                <input type="text" class="hearing-encryption" style="display: none" value="" placeholder="Hearing" required min="0" max="100" asp-for="Hearing" />
+            </div>
+            <input type="number" class="assistantId" style="display: none" value="@ViewData["AssistantId"]" required />
+            <input type="text" class="assistantId-encryption" style="display: none" value="" required asp-for="AssistantId" />
+            <textarea class="publicKey" style="display: none">@ViewData["publicKey"]</textarea><br />
+            <button type="button" class="submit-btn btn btn-block btn-primary">Add User</button>
+
+            <label style="color: red; font-size: 18px;">@Model.Message</label>
+        </form>
+    </div>
+    <div class="col-md-4"></div>
+</div>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/jsencrypt/jsencrypt.min.js"></script>
+
+<script>
+    $(function () {
+        var encrypt = new JSEncrypt();
+        encrypt.setPublicKey($('.publicKey').val());
+
+        $('.submit-btn').click(function () {
+            var password = $('.password').val();
+            var cpassword = $('.cpassword').val();
+
+            $('.username-encryption').val(encrypt.encrypt($('.username').val()));
+            $('.email-encryption').val(encrypt.encrypt($('.email').val()));
+            $('.password-encryption').val(encrypt.encrypt($('.password').val()));
+            $('.age-encryption').val(encrypt.encrypt($('.age').val()));
+            $('.hearing-encryption').val(encrypt.encrypt($('.hearing').val()));
+            $('.gender-encryption').val(encrypt.encrypt($('input[name=sex]:checked').val()));
+            console.log($('.gender-encryption').val());
+            $('.assistantId-encryption').val(encrypt.encrypt($('.assistantId').val()));
+
+            if ($('.username-encryption').val() != null && $('.username-encryption').val() != "" &&
+                $('.email-encryption').val() != null && $('.email-encryption').val() != "" &&
+                $('.password-encryption').val() != null && $('.password-encryption').val() != "" &&
+                $('.age-encryption').val() != null && $('.age-encryption').val() != "" &&
+                $('.hearing-encryption').val() != null && $('.hearing-encryption').val() != "" &&
+                $('.gender-encryption').val() != null && $('.gender-encryption').val() != "" &&
+                $('.assistantId-encryption').val() != null && $('.assistantId-encryption').val() != "") {
+
+                if (password.length <= 8) {
+                    alert("The length of password must > 8!");
+                    return;
+                }
+                else if (password != cpassword) {
+                    alert("Password and Confirm Password are different!");
+                    return;
+                }
+                else if (!ischeckemail($('.email').val())) {
+                    alert("Wrong email format!");
+                    return;
+                }
+                else if (isNaN($('.age').val()) || $('.age').val() < 0 || $('.age').val() > 15) {
+                    alert("The age must between 0 - 15!");
+                    return;
+                }
+                else if (isNaN($('.hearing').val()) || $('.hearing').val() < 0 || $('.hearing').val() > 100) {
+                    alert("The hearing must between 0 - 100!");
+                    return;
+                }
+                else {
+                    $("#addUserForm").submit();
+                }
+            }
+            else {
+                alert("Please enter the values!");
+            }
+        });
+    });
+
+    function ischeckemail(email) {
+        if (email != "") {
+            var pattern = new RegExp(/^(("[\w-\s]+")|([\w-]+(?:\.[\w-]+)*)|("[\w-\s]+")([\w-]+(?:\.[\w-]+)*))(@@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$)|(@@\[?((25[0-5]\.|2[0-4][0-9]\.|1[0-9]{2}\.|[0-9]{1,2}\.))((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\.){2}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\]?$)/i);
+            return pattern.test(email);
+        }
+    }
+</script>

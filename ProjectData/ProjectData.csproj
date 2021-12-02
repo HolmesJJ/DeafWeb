@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Migrations\20181210010648_initial migration.cs" />
+    <Compile Remove="Migrations\20181210011757_initial migration.cs" />
+    <Compile Remove="Migrations\20181210013609_initial migration.cs" />
+    <Compile Remove="Migrations\20181212005535_initial migration.cs" />
+    <Compile Remove="Migrations\20181212005651_initial migration.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.2.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="2.2.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="2.2.0" />
+  </ItemGroup>
+
+</Project>

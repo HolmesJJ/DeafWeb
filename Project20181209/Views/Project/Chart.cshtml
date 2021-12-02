@@ -1,0 +1,145 @@
+﻿@model Project20181209.Models.ChartModel
+
+@{
+    ViewData["Title"] = "Chart";
+}
+
+<div class="row">
+    <div class="well well-sm text-center">
+        <h4>@Model.User.Username</h4>
+    </div>
+    <a asp-action="UserDetail" asp-route-id="@Model.User.Id" class="btn btn-sm btn-default">Back</a>
+    <div class="clearfix"></div>
+    <div id="container" style="width: 90%; height: 500px; margin: 0 auto"></div>
+    <input id="chartTitle" type="hidden" value="@Model.User.Username" />
+    <input id="chartSubTitle" type="hidden" value="@Model.English.Content" />
+
+    <input id="dateContainer" type="hidden" value="@foreach (var finishDate in Model.Progress.Select(progress => progress.FinishDate.ToString("yyyy-MM-dd")).OrderBy(progress => progress).Distinct()){@finishDate}" />
+
+    <div id="gradeContainer" style="display: none">@foreach (var avgGrade in Model.Progress.Where(english => english.English.Id == @Model.English.Id).OrderBy(finishDate => finishDate.FinishDate).GroupBy(finishDate => finishDate.FinishDate).Select(avgGrade => avgGrade.Average(grade => grade.Grade))){<span>@avgGrade,</span>}</div>
+    
+    <button id="showDetailBtn" class="btn btn-block btn-default" data-toggle="modal" data-target="#myModal" style="display: none"></button>
+</div>
+
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="myModalLabel">Select Type</h4>
+            </div>
+            <div class="modal-body">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th style="text-align: center">Content</th>
+                            <th style="text-align: center">Grade</th>
+                            <th style="text-align: center">Finish Date</th>
+                            <th style="text-align: center">Record</th>
+                        </tr>
+                    </thead>
+                    <tbody align="center">
+                        @foreach (var finishDate in Model.Progress.Select(progress => progress.FinishDate.ToString("yyyy-MM-dd")).OrderBy(progress => progress).Distinct())
+                        {
+                            @foreach (var progress in Model.Progress.Where(english => english.English.Id == @Model.English.Id).Where(getFinishDate => getFinishDate.FinishDate.ToString("yyyy-MM-dd") == @finishDate).OrderByDescending(grade => grade.Grade))
+                            {
+                                <tr class="finishDateContainer @finishDate">
+                                    <td>@progress.English.Content</td>
+                                    <td>@progress.Grade</td>
+                                    <td>@progress.FinishDate.ToString("yyyy-MM-dd")</td>
+                                    <td>
+                                        <audio id="record-@progress.Id" src="../api/recordMP3/@progress.Id"></audio>
+                                        <button onclick="playRecord('record-@progress.Id')" type="button" class="btn btn-sm btn-warning">Play</button>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/modules/export-data.js"></script>
+
+<script>
+    var chartTitle = document.getElementById("chartTitle").value;
+
+    var chartSubTitle = document.getElementById("chartSubTitle").value;
+
+    var categoriesList = new Array();
+    var dateContainer = document.getElementById("dateContainer").value;
+    categoriesList = datSsplit(dateContainer, 10);
+
+    var gradeContainer = document.getElementById("gradeContainer").innerHTML;
+    gradeContainer = gradeContainer.split('<span>').join('').split('</span>').join('').replace(/\s/g, "");
+    gradeContainer = gradeContainer.substr(0, gradeContainer.length - 1);
+    var gradeContainerStrList = gradeContainer.split(',');
+
+    var gradeContainerIntList = [];
+    gradeContainerStrList.forEach(function (data, index, arr) {
+        gradeContainerIntList.push(+data);
+    });  
+
+    Highcharts.chart('container', {
+        chart: {
+            type: 'line'
+        },
+        title: {
+            text: chartTitle + "'s Progress"
+        },
+        subtitle: {
+            text: 'Engish content: ' + chartSubTitle
+        },
+        xAxis: {
+            categories: categoriesList
+        },
+        yAxis: {
+            title: {
+                text: 'Grade (0 - 100)'
+            }
+        },
+        plotOptions: {
+            series: {
+                cursor: 'pointer',
+                point: {
+                    events: {
+                        click: function () {
+                            document.getElementById('showDetailBtn').click();
+                            var hiddenEl = document.getElementsByClassName('finishDateContainer');
+                            for (var i = 0; i < hiddenEl.length; i++) {
+                                hiddenEl[i].style.display = "none";
+                            }
+                            var showEl = document.getElementsByClassName(this.category);
+                            for (var i = 0; i < showEl.length; i++) {
+                                showEl[i].style.display = "table-row";
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        series: [{
+            name: chartSubTitle,
+            data: gradeContainerIntList
+        }]
+    });
+
+    function datSsplit(source, count) {
+        let arr = [];
+        for (let i = 0, len = source.length / count; i < len; i++) {
+            let subStr = source.substr(0, count);
+            arr.push(subStr);
+            source = source.replace(subStr, "");
+        }
+        return arr;
+    }
+
+    function playRecord(recordId) {
+        var recordAudio = document.getElementById(recordId);
+        recordAudio.play();
+    }
+</script>

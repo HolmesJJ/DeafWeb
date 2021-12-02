@@ -1,0 +1,164 @@
+﻿@model Project20181209.Models.UserDetailModel
+
+@{
+    ViewData["Title"] = "UserDetail";
+}
+
+<div class="row">
+    <div class="well well-sm text-center">
+        <h4>@Model.User.Username</h4>
+    </div>
+    <a asp-action="Home" class="btn btn-sm btn-default">Back</a>
+    <div class="clearfix"></div>
+    <div class="col-md-4">
+        <img src="~/images/@Model.User.Profile" style="width: 80%; margin-left: 10%;" />
+    </div>
+    <div class="col-md-4">
+        <table class="table">
+            <caption>Schedule</caption>
+            <thead>
+                <tr>
+                    <th>Content</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var Schedule in Model.Schedule)
+                {
+                    <tr>
+                        <td>@Schedule.English.Content</td>
+                        <td>@Schedule.StartDate.ToString("yyyy-MM-dd")</td>
+                        <td>@Schedule.EndDate.ToString("yyyy-MM-dd")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <button class="btn btn-block btn-default" data-toggle="modal" data-target="#myModal">Add</button>
+    </div>
+    <div class="col-md-4">
+        <table class="table">
+            <caption>Progress</caption>
+            <thead>
+                <tr>
+                    <th>Content</th>
+                    <th>Progress</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var engishId in Model.Progress.Select(progress => progress.English).Select(engish => engish.Id).Distinct())
+                {
+                <tr>
+                    <td>@Model.English.FirstOrDefault(english => english.Id == engishId).Content</td>
+                    <td>
+                        <progress max="10" value="@Model.Progress.Where(grade => grade.Grade > 90).Where(english => english.English.Id == engishId).Select(finishDate => finishDate.FinishDate).GroupBy(finishDate => finishDate).Count()"></progress>
+                        <span>@Model.Progress.Where(grade => grade.Grade > 90).Where(english => english.English.Id == engishId).Select(finishDate => finishDate.FinishDate).GroupBy(finishDate => finishDate).Count()/10 </span>
+                    </td>
+                    <td><a asp-action="Chart" asp-route-userId="@Model.User.Id" asp-route-englishId="@engishId" class="btn btn-sm btn-warning">Chart</a></td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="myModalLabel">Select Type</h4>
+            </div>
+            <div class="modal-body">
+                <table class="table table-hover">
+                    <tbody>
+                        @foreach (var Type in Model.Type)
+                        {
+                            <tr><td data-toggle="modal" data-target="#myModal-@Type.Name">@Type.Name</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+
+@foreach (var Type in Model.Type)
+{
+    <div class="modal fade myModal" id="myModal-@Type.Name" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="myModalLabel">Select English</h4>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th><span style="position: relative; top: -10px;">Recommended to you...</span></th>
+                                <th><img src="~/refresh-icon.png" width="15" style="cursor: pointer; position: relative; top: -10px;" onclick=""/></th>
+                                <th><input class="form-control" type="search" placeholder="Enter the key words..." /></th>
+                                <th><button style="position: relative; top: -3px;" onclick="" type="button" class="btn btn-sm btn-warning">Search</button></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var English in Model.English.Where(english => english.Type.Id == Type.Id))
+                            {
+                                <tr>
+                                    <td class="item-english" data-toggle="modal" data-target="#myModal-confirm-@English.Id">@English.Content</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal -->
+    </div>
+}
+
+@foreach (var Type in Model.Type)
+{
+    @foreach (var English in Model.English)
+    {
+        <div class="modal fade confirmModal" id="myModal-confirm-@English.Id" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <form asp-action="AddSchedule" method="post">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                            <h4 class="modal-title" id="myModalLabel">Confirm</h4>
+                        </div>
+                        <div class="modal-body">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Add @English.Content to Schedule?</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><label style="width: 80px;text-align: right;">Start Date:</label></td>
+                                        <td><input type="date" value="" required class="start_date" asp-for="NewScheduleStartDate" /></td>
+                                    </tr>
+                                    <tr>
+                                        <td><label style="width: 80px;text-align: right;">End Date:</label></td>
+                                        <td><input type="date" value="" required class="end_date" disabled asp-for="NewScheduleEndDate" /></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="modal-footer">
+                            <input type="hidden" value="@Model.User.Id" asp-for="NewScheduleUser" />
+                            <input type="hidden" value="@English.Id" asp-for="NewScheduleEnglish" />
+                            <button type="submit" class="btn btn-primary">Confirm</button>
+                        </div>
+                    </div><!-- /.modal-content -->
+                </div><!-- /.modal -->
+            </form>
+        </div>
+    }
+}

@@ -1,0 +1,50 @@
+﻿@model Project20181209.Models.AssistantLoginModel
+
+@{
+    ViewData["Title"] = "Login";
+}
+
+<div class="row">
+    <div class="col-md-4"></div>
+    <div class="col-md-4">
+        <div class="well well-sm text-center"><h4>Assistant Login</h4></div>
+        <form asp-action="Home" method="post" id="loginForm">
+            <div class="input-group">
+                <span class="input-group-addon"><span class="glyphicon glyphicon-user"></span></span>
+                <input type="text" class="username form-control" value="" placeholder="Username" required />
+                <input type="text" class="username-encryption" style="display: none" value="" required asp-for="Username" />
+            </div>
+            <div class="input-group">
+                <span class="input-group-addon"><span class="glyphicon glyphicon-lock"></span></span>
+                <input type="password" class="password form-control" value="" placeholder="Password" required />
+                <input type="password" class="password-encryption" style="display: none" value="" required asp-for="Password" />
+            </div>
+            <textarea class="publicKey" style="display: none">@ViewData["publicKey"]</textarea><br />
+            <button type="button" class="submit-btn btn btn-block btn-primary">Login</button>
+        </form>
+    </div>
+    <div class="col-md-4"></div>
+</div>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/jsencrypt/jsencrypt.min.js"></script>
+
+<script>
+    $(function () {
+        var encrypt = new JSEncrypt();
+        encrypt.setPublicKey($('.publicKey').val());
+
+        $('.submit-btn').click(function () {
+            $('.username-encryption').val(encrypt.encrypt($('.username').val()));
+            $('.password-encryption').val(encrypt.encrypt($('.password').val()));
+            $("#loginForm").submit();
+        })
+    });
+</script>
+
+@if (Model.Message != null)
+{
+    <script>
+        alert("@Model.Message");
+    </script>
+}

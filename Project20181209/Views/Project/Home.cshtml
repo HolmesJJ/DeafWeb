@@ -1,0 +1,52 @@
+﻿@model Project20181209.Models.HomeModel
+
+@{
+    ViewData["Title"] = "Home";
+}
+
+<div class="row">
+    <div class="col-md-2"></div>
+    <div class="col-md-8">
+        <table class="table table-hover">
+            <caption>@Model.AssistantName 
+                <a asp-action="Login" class="btn btn-sm btn-default">Logout</a>
+                <a asp-action="AddUser" class="btn btn-sm btn-default">Add User</a>
+            </caption>
+            <thead>
+                <tr>
+                    <th style="text-align: center">Username</th>
+                    <th style="text-align: center">Profile</th>
+                    <th style="text-align: center">Gender</th>
+                    <th style="text-align: center">Age</th>
+                    <th style="text-align: center">Hearing - Impaired Level</th>
+                    <th style="text-align: center"></th>
+                </tr>
+            </thead>
+            <tbody align="center">
+                @foreach (var user in Model.User)
+                {
+                    <tr>
+                        <td>@user.Username</td>
+                        <td><img src="~/images/@user.Profile" style="width: 2em;" /></td>
+                        @switch (user.Gender)
+                        {
+                            case "M":
+                                <td>Male</td>
+                                break;
+                            case "F":
+                                <td>Female</td>
+                                break;
+                            default:
+                                <td>Unknow</td>
+                                break;
+                        }
+                        <td>@user.Age</td>
+                        <td>@user.Hearing DB</td>
+                        <td><a asp-action="UserDetail" asp-route-id="@user.Id" class="btn btn-sm btn-warning">Select</a></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="col-md-2"></div>
+</div>
